@@ -8,3 +8,8 @@
 [@inline] let not_assessor : string = "Not assessor"
 [@inline] let assessor_already_exists : string = "Assessor already exists"
 [@inline] let cannot_remove_all_assessors : string = "Cannot remove all assessors"
+[@inline] let not_admin : string = "Not admin"
+[@inline] let not_next_admin : string = "Not next admin"
+let no_funding_factory : string = "No funding factory"
+let funding_already_started : string = "Funding already started"
+let unauthorized_user : string = "Unauthorized user"
