@@ -1,7 +1,7 @@
-#include "error.mligo"
+#include "../helper/error.mligo"
 
 (* ============================================================================
- * Loca functions
+ * Local functions
  * ============================================================================ *)
 let get_nat_state_internal (store : storage) : nat = 
     match store.contract_state with

@@ -69,7 +69,7 @@ type storage = {
 type return_ = operation list * storage
 
 
-#include "idea.mligo"
+#include "../lib/idea_lib.mligo"
 
 (* ============================================================================
  * Views
