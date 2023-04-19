@@ -6,12 +6,12 @@
 (* ============================================================================
  * State machine
  * ============================================================================ *)
-type state = Entered | Draft | Assessed | Approved| Rejected
-let state_entered : nat = 0n
-let state_draft : nat = 1n
-let state_assessed : nat = 2n
-let state_approved : nat = 3n
-let state_rejected : nat = 4n
+type state = nat
+let entered : state = 0n
+let draft : state = 1n
+let assessed : state = 2n
+let approved : state = 3n
+let rejected : state = 4n
 
 (* ============================================================================
  * Interface parameters for other contracts / users
@@ -74,7 +74,7 @@ type return_ = operation list * storage
 (* ============================================================================
  * Views
  * ============================================================================ *)
-[@view] let get_state ((),store : unit * storage) : nat = get_nat_state_internal store
+[@view] let get_state ((),store : unit * storage) : nat = store.contract_state
 [@view] let get_requested_fund ((),store : unit * storage) : tez = store.requested_fund
 
 (* ============================================================================

@@ -5,9 +5,9 @@
 (* ============================================================================
  * State machine
  * ============================================================================ *)
-type state = NotStarted | Started
-let not_started : nat = 0n
-let started : nat = 1n
+type state = nat
+let not_started : state = 0n
+let started : state = 1n
 
 (* ============================================================================
  * Interface parameters for other contracts / users
@@ -23,21 +23,23 @@ let started : nat = 1n
  * Contract parameter and storage
  * ============================================================================ *)
 type parameter = Start
-
 type storage = {
     id : nat;
     parent : address;
     contract_state : state;
 }
-type return_ = operation list * storage
 
+(* ============================================================================
+ * Entrypoints
+ * ============================================================================ *)
+type return_ = operation list * storage
 
 #include "../lib/funding_round_lib.mligo"
 
 (* ============================================================================
  * Views
  * ============================================================================ *)
-[@view] let get_state ((),store : unit * storage) : nat = get_nat_state_internal store
+[@view] let get_state ((),store : unit * storage) : nat = store.contract_state
 
 (* ============================================================================
  * Main

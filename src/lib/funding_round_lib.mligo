@@ -3,11 +3,6 @@
 (* ============================================================================
  * Local functions
  * ============================================================================ *)
-let get_nat_state_internal (store : storage) : nat = 
-    match store.contract_state with
-    | NotStarted -> not_started
-    | Started -> started
-
 
 (* ============================================================================
  * Entrypoints implementation
@@ -19,9 +14,9 @@ let start (store : storage) : storage =
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
     let () = assert_with_error (store.parent = sender) not_parent in
-    let () = assert_with_error (store.contract_state = NotStarted) wrong_state in
+    let () = assert_with_error (store.contract_state = not_started) wrong_state in
 
     (* body *)
-    {store with contract_state = Started}
+    {store with contract_state = started}
 
 

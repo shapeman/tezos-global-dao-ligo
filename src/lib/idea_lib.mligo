@@ -3,14 +3,6 @@
 (* ============================================================================
  * Local functions
  * ============================================================================ *)
-let get_nat_state_internal (store : storage) : nat = 
-    match store.contract_state with
-    | Entered -> state_entered
-    | Draft -> state_draft
-    | Assessed -> state_assessed
-    | Approved -> state_approved
-    | Rejected -> state_rejected
-
 let found_assessor (a : address) (store : storage) : bool =
     let found : bool option = Map.find_opt a store.assessors in
     match found with 
@@ -53,7 +45,7 @@ let remove_assessor (address : address) (store : storage) : storage =
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
     let () = assert_with_error (found_assessor sender store) not_assessor in
-    let () = assert_with_error (store.contract_state = Assessed) wrong_state in
+    let () = assert_with_error (store.contract_state = assessed) wrong_state in
     let () = assert_with_error (Map.size store.assessors > 1n) cannot_remove_all_assessors in
 
     // Code
@@ -66,11 +58,11 @@ let move_to_draft (params : move_to_draft_param) (store : storage) : storage =
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
-    let () = assert_with_error (store.contract_state = Entered) wrong_state in
+    let () = assert_with_error (store.contract_state = entered) wrong_state in
     let () = assert_with_error (sender = store.parent) not_parent in
 
     (* body *)
-    {store with contract_state = Draft; draft_period = params.draft_period; assess_period = params.assess_period; start_draft = Tezos.get_level()}
+    {store with contract_state = draft; draft_period = params.draft_period; assess_period = params.assess_period; start_draft = Tezos.get_level()}
 
 
 (* set_fund_request *)
@@ -79,7 +71,7 @@ let set_fund_request(requested_amount : tez) (store : storage) : storage =
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
-    let () = assert_with_error (store.contract_state = Draft) wrong_state in
+    let () = assert_with_error (store.contract_state = draft) wrong_state in
     let () = assert_with_error (Set.mem sender store.owners) not_owner in
 
     (* body *)
@@ -92,26 +84,25 @@ let close_idea (store : storage) : storage =
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
-    let () = assert_with_error ((store.parent = sender) || ((store.contract_state = Draft) && (Set.mem sender store.owners))) wrong_state in
+    let () = assert_with_error ((store.parent = sender) || ((store.contract_state = draft) && (Set.mem sender store.owners))) wrong_state in
 
     (* body *)
-    let fold : bool =
-        let folder = fun (i,j : bool * (address * bool)) : bool -> i && j.1
-        in Map.fold folder store.assessors true
-    in
     let assess : storage = 
         if store.draft_period + store.start_draft + store.assess_period < Tezos.get_level() then
+            let fold : bool =
+                let folder = fun (i,j : bool * (address * bool)) : bool -> i && j.1
+                in 
+                Map.fold folder store.assessors true
+            in
             if fold then
-                {store with contract_state = Approved}
+                {store with contract_state = approved}
             else
-                {store with contract_state = Rejected}
+                {store with contract_state = rejected}
         else
-            {store with contract_state = Rejected}
+            {store with contract_state = rejected}
     in 
-    match store.contract_state with 
-        | Assessed -> assess
-        | Approved -> store
-        | _ -> {store with contract_state = Rejected}
+    if store.contract_state = assessed then assess else 
+        if store.contract_state = approved then store  else {store with contract_state = rejected}
 
 
 (* update *)
@@ -119,7 +110,7 @@ let update (params : (string, bytes) map) (store : storage) : storage =
     (* asserts *)
     let sender = Tezos.get_sender() in
     let level = Tezos.get_level() in
-    let () = assert_with_error (store.contract_state = Draft) wrong_state in
+    let () = assert_with_error (store.contract_state = draft) wrong_state in
     let () = assert_with_error (Set.mem sender store.owners) not_owner in
     let ready : bool = 
         match store.last_update_level with
@@ -172,7 +163,7 @@ let approve (store : storage) : storage =
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
-    let () = assert_with_error (store.contract_state = Assessed) wrong_state in
+    let () = assert_with_error (store.contract_state = assessed) wrong_state in
     let found_assessor : bool = 
         match Map.find_opt sender store.assessors with 
         | None -> false

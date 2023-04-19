@@ -5,11 +5,11 @@
 (* ============================================================================
  * State machine
  * ============================================================================ *)
-type state = Idle | OpeningFunding | FundingInProgress | StoppingFunding
-[@inline] let idle : nat = 0n
-[@inline] let opening_funding : nat = 1n
-[@inline] let funding_in_progress : nat = 2n
-[@inline] let stopping_funding : nat = 3n
+type state = nat
+[@inline] let idle : state = 0n
+[@inline] let opening_funding : state = 1n
+[@inline] let funding_in_progress : state = 2n
+[@inline] let stopping_funding : state = 3n
 
 (* ============================================================================
  * Errors
@@ -47,22 +47,22 @@ type storage = {
 }
 type return_ = operation list * storage
 
-
 #include "../lib/registry_lib.mligo"
 
 (* ============================================================================
  * Views
  * ============================================================================ *)
-[@view] let get_state ((),store : unit * storage) : nat = get_nat_state_internal store
+[@view] let get_state ((),store : unit * storage) : nat = store.contract_state
 
 (* ============================================================================
  * Main
  * ============================================================================ *)
 let main (action : parameter) (store : storage) : return_ =
-    [],
+    [], 
     (match action with
     | SetNextAdministator n -> set_next_administrator n store
     | ValidateNewAdministrator -> validate_new_administrator store
     | SetFactoryFunding n -> set_factory_funding n store
     )
+
 

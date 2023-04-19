@@ -3,13 +3,6 @@
 (* ============================================================================
  * Local functions
  * ============================================================================ *)
-let get_nat_state_internal (store : storage) : nat = 
-    match store.contract_state with
-    | Idle -> idle
-    | OpeningFunding -> opening_funding
-    | FundingInProgress -> funding_in_progress
-    | StoppingFunding -> stopping_funding
-
 let get_build_entrypoint (addr : address) = 
     match Tezos.get_entrypoint_opt "%add" addr with
     | Some contract -> contract
@@ -74,7 +67,7 @@ let start_funding (store : storage) : operation list * storage =
         | None -> true
     in
     let () = assert_with_error (funding_contract_none) funding_already_started in
-    let () = assert_with_error (store.contract_state = Idle) funding_already_started in
+    let () = assert_with_error (store.contract_state = idle) funding_already_started in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
     
     (* Body *)
@@ -82,7 +75,7 @@ let start_funding (store : storage) : operation list * storage =
         | Some addr ->  
             let build : nat contract = get_build_entrypoint (addr) in
             let ops = Tezos.transaction (store.history_size) 0tez build in
-            ([ops], {store with contract_state = OpeningFunding})
+            ([ops], {store with contract_state = opening_funding})
         | None -> failwith no_funding_factory
 
 
@@ -98,8 +91,8 @@ let factory_callback (contract_address : address) (store : storage) : storage =
     in
     let () = assert_with_error (is_factory) unauthorized_user in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
-    let () = assert_with_error (store.contract_state = OpeningFunding) funding_already_started in
+    let () = assert_with_error (store.contract_state = opening_funding) funding_already_started in
     
     (* Body *)
-    {store with current_funding_contract = Some(contract_address); contract_state = FundingInProgress}
+    {store with current_funding_contract = Some(contract_address); contract_state = funding_in_progress}
 
