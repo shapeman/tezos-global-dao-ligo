@@ -24,37 +24,31 @@ type funding_storage = {
     parent : address;
     contract_state : state;
 }
+let build_storage (id : nat) (parent : address) : funding_storage =
+  { id = id;
+    parent = parent;
+    contract_state = 0n }
 
+(* ============================================================================
+ * Child parameters
+ * ============================================================================ *) 
 
 (* ============================================================================
  * Contract parameter and storage
  * ============================================================================ *)
-type parameter = address
+type parameter = nat
 
 type storage = {
     owner : address;
 }
 type return_ = operation list * storage
 
-
-#include "../lib/funding_round_lib.mligo"
-
 (* ============================================================================
  * Contracts code
  * ============================================================================ *)
 [@inline] let create_contract = [%Michelson ({|{ UNPAIR 3 ; CREATE_CONTRACT ;
-#include "./child.tz";
+#include "./dummy.tz";
                    PAIR}|} : create_contract_args -> create_contract_result)]
-
-
-(* ============================================================================
- * Main
- * ============================================================================ *)
-let build (address : parameter) (store : storage) : return_ =
-
-    
-
-type child_storage = unit
 
 type create_contract_args =
   [@layout:comb]
@@ -68,11 +62,12 @@ type create_contract_result =
   { operation : operation;
     address : address }
 
-
-
-let main (_ : unit * unit) : operation list * unit =
+(* ============================================================================
+ * Main
+ * ============================================================================ *)
+let build (id : parameter) (store : storage) : return_ =
   let {operation; address = _} =
     create_contract { delegate = (None : key_hash option);
-                      balance = Tezos.get_amount ();
-                      storage = () } in
-  ([operation], ())
+                      balance = 0tez;
+                      storage =  build_storage id Tezos.get_self_address()} in
+  ([operation], store)

@@ -11,9 +11,16 @@ fi
 mkdir -p "$1/registry"
 mkdir -p "$1/funding_round"
 mkdir -p "$1/idea"
+mkdir -p "$1/factory"
 
-# Compile contracts
-ligo compile contract ../src/interface/registry.mligo > "$1/registry/registry.tz"
-ligo compile contract ../src/interface/funding_round.mligo > "$1/funding_round/funding_roumd.tz"
-ligo compile contract ../src/interface/idea.mligo > "$1/idea/idea.tz"
+# Compile registry
+ligo compile contract ../src/interface/registry.mligo -e main > "$1/registry/registry.tz"
+
+# Compile funding and funding factory
+ligo compile contract ../src/interface/funding_round.mligo -e main > ../src/factory/dummy.tz
+ligo compile contract ../src/factory/factory.mligo -e build > "$1/funding_round/factory_funding_round.tz"
+# rm ../src/factory/dummy.tz
+
+# Compile idea
+ligo compile contract ../src/interface/idea.mligo -e main > "$1/idea/idea.tz"
 
