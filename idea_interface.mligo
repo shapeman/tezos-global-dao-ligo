@@ -1,7 +1,11 @@
-//Contants
-let spam_protection_block_number : nat = 20n
+(* ============================================================================
+ * Constants
+ * ============================================================================ *)
+[@inline] let spam_protection_block_number : nat = 20n
 
-// State machine
+(* ============================================================================
+ * State machine
+ * ============================================================================ *)
 type state = Entered | Draft | Assessed | Approved| Rejected
 let state_entered : nat = 0n
 let state_draft : nat = 1n
@@ -9,14 +13,18 @@ let state_assessed : nat = 2n
 let state_approved : nat = 3n
 let state_rejected : nat = 4n
 
-// Calls param
+(* ============================================================================
+ * Interface parameters for other contracts / users
+ * ============================================================================ *)
 type move_to_draft_param = 
     [@layout comb] {
     draft_period : nat; 
     assess_period : nat;
 }
 
-// Types 
+(* ============================================================================
+ * Type
+ * ============================================================================ *)
 type history_map_value = 
     [@layout comb]{
     new : string set;
@@ -24,7 +32,9 @@ type history_map_value =
     data : (string, bytes) map;
 }
 
-// Parameter, storage and main return type
+(* ============================================================================
+ * Contract parameter and storage
+ * ============================================================================ *)
 type parameter = 
     | AddOwner of address
     | AddAssessor of address
@@ -61,7 +71,15 @@ type return_ = operation list * storage
 
 #include "idea.mligo"
 
-// Main
+(* ============================================================================
+ * Views
+ * ============================================================================ *)
+[@view] let get_state ((),store : unit * storage) : nat = get_nat_state_internal store
+[@view] let get_requested_fund ((),store : unit * storage) : tez = store.requested_fund
+
+(* ============================================================================
+ * Main
+ * ============================================================================ *)
 let main (action : parameter) (store : storage) : return_ =
     [],
     (match action with
@@ -75,6 +93,3 @@ let main (action : parameter) (store : storage) : return_ =
     | Approve -> approve store
     )
 
-// Views
-(* view 'view1', simply returns the storage *)
-[@view] let get_state ((),store : unit * storage) : nat = get_nat_state_internal store
