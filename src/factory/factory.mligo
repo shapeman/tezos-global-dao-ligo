@@ -19,6 +19,11 @@
 (* ============================================================================
  * Child storages
  * ============================================================================ *)
+type funding_storage = {
+    id : nat;
+    parent : address;
+    contract_state : state;
+}
 
 
 (* ============================================================================
@@ -35,16 +40,19 @@ type return_ = operation list * storage
 #include "../lib/funding_round_lib.mligo"
 
 (* ============================================================================
- * Views
+ * Contracts code
  * ============================================================================ *)
+[@inline] let create_contract = [%Michelson ({|{ UNPAIR 3 ; CREATE_CONTRACT ;
+#include "./child.tz";
+                   PAIR}|} : create_contract_args -> create_contract_result)]
+
 
 (* ============================================================================
  * Main
  * ============================================================================ *)
 let build (address : parameter) (store : storage) : return_ =
+
     
-
-
 
 type child_storage = unit
 
@@ -60,12 +68,7 @@ type create_contract_result =
   { operation : operation;
     address : address }
 
-[@inline] let create_contract =
-  [%Michelson ({|{ UNPAIR 3;
-                   CREATE_CONTRACT
-#include "./child.tz";
-                   PAIR
-                   }|} : create_contract_args -> create_contract_result)]
+
 
 let main (_ : unit * unit) : operation list * unit =
   let {operation; address = _} =
