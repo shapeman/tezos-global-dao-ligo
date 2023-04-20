@@ -24,5 +24,11 @@ rm ../src/factory/dummy.tz
 rm ../src/factory/dummy_storage.tz
 
 # Compile idea
-ligo compile contract ../src/interface/idea.mligo -e main > "$1/idea/idea.tz"
+ligo compile contract ../src/interface/idea.mligo -e main > ../src/factory/dummy.tz
+cp ../src/factory/factory_idea_storage.mligo ../src/factory/dummy_storage.tz
+ligo compile contract ../src/factory/factory.mligo -e build > "$1/idea/factory_idea.tz"
+rm ../src/factory/dummy.tz
+rm ../src/factory/dummy_storage.tz
+
+
 

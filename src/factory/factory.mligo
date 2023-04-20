@@ -30,10 +30,10 @@
  * ============================================================================ *)
 type parameter = nat
 
-type storage = {
+type factory_storage = {
     owner : address;
 }
-type return_ = operation list * storage
+type return_ = operation list * factory_storage
 
 (* ============================================================================
  * Contracts code
@@ -43,7 +43,7 @@ type create_contract_args =
   (* order matters because we will cross the Michelson boundary *)
   { delegate : key_hash option;
     balance : tez;
-    storage : funding_storage }
+    storage : storage }
 
 type create_contract_result =
   [@layout:comb]
@@ -56,7 +56,7 @@ type create_contract_result =
 (* ============================================================================
  * Main
  * ============================================================================ *)
-let build (id : parameter) (store : storage) : return_ =
+let build (id : parameter) (store : factory_storage) : return_ =
   let {operation; address = _} =
     create_contract { delegate = (None : key_hash option);
                       balance = 0tez;

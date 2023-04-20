@@ -1,3 +1,5 @@
+#include "../types/idea_types.mligo"
+
 (* ============================================================================
  * Constants
  * ============================================================================ *)
@@ -6,7 +8,6 @@
 (* ============================================================================
  * State machine
  * ============================================================================ *)
-type state = nat
 let entered : state = 0n
 let draft : state = 1n
 let assessed : state = 2n
@@ -25,15 +26,10 @@ type move_to_draft_param =
 (* ============================================================================
  * Type
  * ============================================================================ *)
-type history_map_value = 
-    [@layout comb]{
-    new : string set;
-    level : nat;
-    data : (string, bytes) map;
-}
+
 
 (* ============================================================================
- * Contract parameter and storage
+ * Contract parameter
  * ============================================================================ *)
 type parameter = 
     | AddOwner of address
@@ -45,27 +41,6 @@ type parameter =
     | Update of (string, bytes) map
     | Approve
 
-type storage = {
-    id : nat;
-    parent : address;
-    contract_state : state;
-    owners : address set;
-    assessors :  (address, bool) map;
-
-    start_draft : nat;
-    draft_period : nat;
-    assess_period : nat;
-
-    current_data : (string, bytes) map;
-    new_entries_tag : string set;
-
-    history : (nat, history_map_value) big_map;
-    history_size : nat;
-
-    last_update_level : nat option;
-
-    requested_fund : tez;
-}
 type return_ = operation list * storage
 
 
