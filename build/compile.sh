@@ -18,8 +18,10 @@ ligo compile contract ../src/interface/registry.mligo -e main > "$1/registry/reg
 
 # Compile funding and funding factory
 ligo compile contract ../src/interface/funding_round.mligo -e main > ../src/factory/dummy.tz
+cp ../src/factory/factory_funding_round_storage.mligo ../src/factory/dummy_storage.tz
 ligo compile contract ../src/factory/factory.mligo -e build > "$1/funding_round/factory_funding_round.tz"
-# rm ../src/factory/dummy.tz
+rm ../src/factory/dummy.tz
+rm ../src/factory/dummy_storage.tz
 
 # Compile idea
 ligo compile contract ../src/interface/idea.mligo -e main > "$1/idea/idea.tz"
