@@ -11,9 +11,12 @@ fi
 mkdir -p "$1/registry"
 mkdir -p "$1/funding_round"
 mkdir -p "$1/idea"
-mkdir -p "$1/factory"
+mkdir -p "$1/promotion_vote"
 
 # Compile registry
+ligo compile contract ../src/interface/promotion_vote.mligo -e main > "$1/promotion_vote/promotion_vote.tz"
+
+# Compile promotion vote
 ligo compile contract ../src/interface/registry.mligo -e main > "$1/registry/registry.tz"
 
 # Compile funding and funding factory

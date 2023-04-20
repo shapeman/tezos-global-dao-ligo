@@ -3,7 +3,8 @@
  * Idea contract Types
  * ============================================================================ *)
 type history_map_value = 
-    [@layout comb]{
+    [@layout comb]
+    {
     new : string set;
     level : nat;
     data : (string, bytes) map;
