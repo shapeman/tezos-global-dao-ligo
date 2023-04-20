@@ -21,7 +21,7 @@ let start (params : start_call) (store : storage) : storage =
     (* Asserts *)
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
-    let () = assert_with_error (sender = store.owner) unauthorized_user in
+    let () = assert_with_error (Set.mem sender store.owners) unauthorized_user in
     let () = assert_with_error (amount = 0tez) do_not_accept_tez in
     let not_exists = match Big_map.find_opt params.unique_id store.vote with
         | None -> true
@@ -120,3 +120,41 @@ let stop (unique_id : unique_id) (store : storage) : storage =
     in
     {store with vote = Big_map.update unique_id (Some(update_vi)) store.vote;
                 governance = {store.governance with quorum_per_ten_mille = update_quorum};}
+
+
+(* update_governance *)
+let update_governance (params : governance) (store : storage) : storage =
+    (* Asserts *)
+    let amount = Tezos.get_amount() in
+    let sender = Tezos.get_sender() in
+    let () = assert_with_error (amount = 0tez) do_not_accept_tez in
+    let () = assert_with_error (Set.mem sender store.owners) unauthorized_user in
+
+    (* Body *)
+    {store with governance = params}
+
+(* add_owner *)
+let add_owner (new_owner : address) (store : storage) : storage =
+    (* Asserts *)
+    let amount = Tezos.get_amount() in
+    let sender = Tezos.get_sender() in
+    let () = assert_with_error (amount = 0tez) do_not_accept_tez in
+    let () = assert_with_error (Set.mem sender store.owners) unauthorized_user in
+
+    (* Body *)
+    {store with owners = Set.add new_owner store.owners}
+
+(* remove_owner *)
+let remove_owner (owner : address) (store : storage) : storage =
+    (* Asserts *)
+    let amount = Tezos.get_amount() in
+    let sender = Tezos.get_sender() in
+    let () = assert_with_error (amount = 0tez) do_not_accept_tez in
+    let () = assert_with_error (Set.mem sender store.owners) unauthorized_user in
+    let () = assert_with_error (Set.mem owner store.owners) not_owner in
+    let () = assert_with_error (Set.size store.owners > 1n) cannot_remove_all_owners in
+
+    (* Body *)
+    {store with owners = Set.remove owner store.owners}
+
+(* transfer_ownership *)

@@ -4,6 +4,7 @@
 [@inline] let wrong_state : string = "Wrong state"
 [@inline] let not_parent : string = "Not parent"
 [@inline] let not_owner : string = "Not owner"
+let cannot_remove_all_owners : string = "Cannot remove all owners"
 [@inline] let too_early : string = "Too early"
 [@inline] let not_assessor : string = "Not assessor"
 [@inline] let assessor_already_exists : string = "Assessor already exists"

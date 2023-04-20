@@ -25,6 +25,9 @@ type parameter =
     | Start of start_call
     | Vote of vote_call
     | Stop of unique_id
+    | UpdateGovernance of governance
+    | RemoveOwner of address
+    | AddOwner of address
 
 type return_ = operation list * storage
 
@@ -43,5 +46,8 @@ let main (action : parameter) (store : storage) : return_ =
     | Start n -> start n store
     | Vote n -> vote n store
     | Stop n -> stop n store
+    | UpdateGovernance n -> update_governance n store
+    | RemoveOwner n -> remove_owner n store
+    | AddOwner n -> add_owner n store
     )
 

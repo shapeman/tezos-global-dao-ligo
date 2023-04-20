@@ -4,7 +4,7 @@
  * Promotion vote types
  * ============================================================================ *)
 (* storage *)
-type vote_state = InProgress | Rejected | Passed
+type vote_state = InProgress | Done
 
 type governance =
     [@layout:comb]
@@ -34,7 +34,7 @@ type vote_info =
 
 type storage = {
     (* owners *)
-    owners : address set;
+    owner : address;
 
     (* vote *)
     vote : (unique_id, vote_info) big_map;
