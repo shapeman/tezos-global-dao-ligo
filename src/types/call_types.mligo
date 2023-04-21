@@ -1,7 +1,7 @@
 (* ============================================================================
  * Call types
  * ============================================================================ *)
- type start_call =
+ type promotion_vote_start_call =
     [@layout:comb]
     {
         unique_id : nat;
@@ -9,11 +9,27 @@
         voters_contract : address;
  }
 
-type vote_value = Yay | Nay | Abstain
-
- type vote_call =
+type proposal_vote_start_call =
     [@layout:comb]
     {
         unique_id : nat;
-        vote_value : vote_value;
+        period : nat;
+        proposals : nat set;
+        voters_contract : address;
+ }
+
+type proposal_vote_call =
+    [@layout:comb]
+    {
+        unique_id : nat;
+        proposal : nat;
+}
+
+type promotion_vote_value = Yay | Nay | Abstain
+
+type promotion_vote_call =
+    [@layout:comb]
+    {
+        unique_id : nat;
+        vote_value : promotion_vote_value;
 }

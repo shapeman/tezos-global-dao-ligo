@@ -10,31 +10,24 @@ type governance =
     [@layout:comb]
     {
     delay_block : nat;
-    supermajority_per_ten_mille : nat;
-    quorum_cap_low_per_ten_mille : nat;
-    quorum_cap_high_per_ten_mille : nat;
-    quorum_per_ten_mille : nat;
 }
 
 type vote_info = 
     [@layout:comb]
     {
     unique_id : unique_id;
-    nay : nat;
-    yay : nat;
-    abstain : nat;
+    proposals : (nat, nat) map;
     vote_state : vote_state;
     start_level : nat;
     end_level : nat;
     total_voting_power : nat;
     voters_contract : address;
-    quorum : nat;
     governance : governance;
 }
 
 type storage = {
     (* owners *)
-    owner : address;
+    owners : address set;
 
     (* vote *)
     vote : (unique_id, vote_info) big_map;
@@ -44,6 +37,6 @@ type storage = {
 
     (* History *)
     vote_history : (nat, unique_id) big_map;
-    voters_history : ((address * unique_id), (nat * vote_value)) big_map;
+    voters_history : ((address * unique_id), (nat * nat)) big_map;
     vote_history_size : nat;
 }

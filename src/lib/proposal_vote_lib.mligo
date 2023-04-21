@@ -4,20 +4,11 @@
  * Local functions and contants
  * ============================================================================ *)
 
-(* When the dynamic quorum is adjusted, 
-we use 80% of the current quorum and 20% of the current participation
-# to adust the quorum for the next poll *)
-[@inline] let dynamic_quorum_weight_factor : nat = 8000n
-[@inline] let dynamic_participation_weight_factor : nat = 2000n
-
-(* Scale is the precision with which numbers are measured. *)
-[@inline] let scale = 10000n
-
 (* ============================================================================
  * Entrypoints implementation
  * ============================================================================ *)
 (* start *)
-let start (params : promotion_vote_start_call) (store : storage) : storage =
+let start (params : proposal_vote_start_call) (store : storage) : storage =
     (* Asserts *)
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
@@ -36,17 +27,18 @@ let start (params : promotion_vote_start_call) (store : storage) : storage =
         | Some x -> if x > 0n then x else failwith cannot_get_total_voting_power
         | None -> failwith cannot_get_total_voting_power
     in
+    let build_proposal : (nat, nat) map =
+        let fold = fun (acc, item) -> Map.add item 0n acc in
+        Set.fold fold params.proposals Map.empty
+    in
     let vi : vote_info = {
         unique_id = params.unique_id;
-        nay = 0n;
-        yay = 0n;
-        abstain = 0n;
+        proposals = build_proposal;
         vote_state = InProgress;
         start_level = Tezos.get_level();
         end_level = Tezos.get_level() + params.period + store.governance.delay_block;
         total_voting_power = total_voting_power;
         voters_contract = params.voters_contract;
-        quorum = (total_voting_power * store.governance.quorum_per_ten_mille) / scale;
         governance = store.governance;
     } in
     {store with vote = Big_map.add params.unique_id vi store.vote; 
@@ -55,7 +47,7 @@ let start (params : promotion_vote_start_call) (store : storage) : storage =
 
 
 (* vote *)
-let vote (params : promotion_vote_call) (store : storage) : storage =
+let vote (params : proposal_vote_call) (store : storage) : storage =
     (* Asserts *)
     let sender = Tezos.get_sender() in
     let amount = Tezos.get_amount() in
@@ -67,6 +59,11 @@ let vote (params : promotion_vote_call) (store : storage) : storage =
     let () = assert_with_error (vi.vote_state = InProgress) vote_not_in_progress in
     let () = assert_with_error (Tezos.get_level() < vi.end_level) vote_period_expired in
     let () = assert_with_error (Tezos.get_level() > vi.start_level + vi.governance.delay_block) vote_period_not_started in
+    let proposal_exits = match Map.find_opt (params.proposal) vi.proposals with
+        | Some _x -> true
+        | None -> false
+    in
+    let () = assert_with_error (proposal_exits) proposal_not_found in
     let has_not_voted = match (Big_map.find_opt (sender, params.unique_id) store.voters_history) with
         | Some _ -> false
         | None -> true
@@ -79,13 +76,15 @@ let vote (params : promotion_vote_call) (store : storage) : storage =
         | Some x -> if x > 0n then x else failwith no_voting_power
         | None -> failwith cannot_get_voting_power
     in
-    let add_vote_value = match params.vote_value with
-        | Yay -> {vi with yay = vi.yay + voting_power}
-        | Nay -> {vi with nay = vi.nay + voting_power}
-        | Abstain -> {vi with abstain = vi.abstain + voting_power}
+    let add_vote_value = 
+        let get_proposal = match Map.find_opt (params.proposal) vi.proposals with 
+            | Some x -> x
+            | None -> failwith proposal_not_found
+        in
+    {vi with proposals = Map.update params.proposal (Some(get_proposal)) vi.proposals}
     in
     {store with vote = Big_map.update params.unique_id (Some(add_vote_value)) store.vote; 
-                voters_history = Big_map.add (sender, params.unique_id) (voting_power, params.vote_value) store.voters_history;
+                voters_history = Big_map.add (sender, params.unique_id) (voting_power, params.proposal) store.voters_history;
 }
 
 (* stop *)
@@ -101,25 +100,10 @@ let stop (unique_id : unique_id) (store : storage) : storage =
     let () = assert_with_error (Tezos.get_level() > vi.end_level) vote_period_not_expired in
 
     (* Body *)
-    let total_votes = vi.yay + vi.nay + vi.abstain in
-    let vote_result : vote_state = 
-        let total_opiniated_votes = vi.yay + vi.nay in
-        let yay_votes_supermajority = (total_opiniated_votes * vi.governance.supermajority_per_ten_mille) / scale in
-        if (vi.yay >= yay_votes_supermajority) && (total_votes >= vi.quorum) then Passed else Rejected
-    in
     let update_vi =
-        {vi with vote_state = vote_result}
+        {vi with vote_state = Done }
     in
-    let update_quorum : nat =
-        let last_weight = (vi.quorum * dynamic_quorum_weight_factor) / scale in
-        let new_participation = (total_votes * dynamic_participation_weight_factor) / scale in
-        let new_quorum_per_ten_mille = (last_weight + new_participation) * scale in
-        if new_quorum_per_ten_mille < vi.governance.quorum_cap_low_per_ten_mille then vi.governance.quorum_cap_low_per_ten_mille
-             else if new_quorum_per_ten_mille > vi.governance.quorum_cap_high_per_ten_mille then vi.governance.quorum_cap_high_per_ten_mille
-                else new_quorum_per_ten_mille
-    in
-    {store with vote = Big_map.update unique_id (Some(update_vi)) store.vote;
-                governance = {store.governance with quorum_per_ten_mille = update_quorum};}
+    {store with vote = Big_map.update unique_id (Some(update_vi)) store.vote;}
 
 
 (* update_governance *)

@@ -1,5 +1,5 @@
 #include "../types/call_types.mligo"
-#include "../types/promotion_vote_types.mligo"
+#include "../types/proposal_vote_types.mligo"
 
 (* ============================================================================
  * Constants
@@ -22,8 +22,8 @@
  * Contract parameter
  * ============================================================================ *)
 type parameter = 
-    | Start of promotion_vote_start_call
-    | Vote of promotion_vote_call
+    | Start of proposal_vote_start_call
+    | Vote of proposal_vote_call
     | Stop of unique_id
     | UpdateGovernance of governance
     | RemoveOwner of address
@@ -31,7 +31,7 @@ type parameter =
 
 type return_ = operation list * storage
 
-#include "../lib/promotion_vote_lib.mligo"
+#include "../lib/proposal_vote_lib.mligo"
 
 (* ============================================================================
  * Views

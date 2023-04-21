@@ -44,6 +44,6 @@ type storage = {
 
     (* History *)
     vote_history : (nat, unique_id) big_map;
-    voters_history : ((address * unique_id), (nat * vote_value)) big_map;
+    voters_history : ((address * unique_id), (nat * promotion_vote_value)) big_map;
     vote_history_size : nat;
 }
